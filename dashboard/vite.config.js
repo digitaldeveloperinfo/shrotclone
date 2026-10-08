@@ -10,9 +10,8 @@ import seo from './vite-plugin-seo'
 
 // Backend target for the dev proxy. Defaults to localhost:8000 when running on
 // host, or backend:8000 inside Docker Compose; overridable with VITE_PROXY_TARGET.
-const isDocker = fs.existsSync('/.dockerenv')
-const backend = process.env.VITE_PROXY_TARGET || (isDocker ? 'http://backend:8000' : 'http://localhost:8000')
-const renderer = process.env.VITE_RENDER_TARGET || (isDocker ? 'http://renderer:3100' : 'http://localhost:3100')
+const backend = process.env.VITE_PROXY_TARGET || 'http://localhost:8000'
+const renderer = process.env.VITE_RENDER_TARGET || 'http://localhost:3100'
 
 const proxy = {
   '/api': { target: backend, changeOrigin: true },

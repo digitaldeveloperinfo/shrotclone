@@ -22,6 +22,7 @@ echo "Installing Frontend dependencies..."
 (cd dashboard && npm ci)
 
 # 5. Environment config
+export VITE_PROXY_TARGET="http://localhost:8000"
 if [ ! -f .env ]; then
   echo "Creating .env configuration..."
   cat << 'EOF' > .env
@@ -31,6 +32,7 @@ LLM_MODEL=antigravity/gemini-3.8-flash-tiered
 LLM_PROVIDER=openai
 LLM_TIMEOUT=120
 LLM_SCORE_BATCH=3
+VITE_PROXY_TARGET=http://localhost:8000
 QUALITY_GATE_MIN_HEIGHT=0
 RATE_LIMIT_ENABLED=0
 DEBUG_LOGS=true
@@ -46,7 +48,7 @@ fi
 
 echo "Starting backend and frontend..."
 uvicorn app:app --host 0.0.0.0 --port 8000 > /content/backend.log 2>&1 &
-(cd dashboard && npm run dev -- --host 0.0.0.0 --port 5173) > /content/frontend.log 2>&1 &
+(cd dashboard && VITE_PROXY_TARGET=http://localhost:8000 npm run dev -- --host 0.0.0.0 --port 5173) > /content/frontend.log 2>&1 &
 
 sleep 3
 
