@@ -1,15 +1,20 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
-import boto3
-from botocore.exceptions import ClientError
-import logging
+try:
+    import boto3
+    from botocore.exceptions import ClientError
+    from botocore.config import Config
+    import logging
 
-# Configure silent logging for boto3 and botocore
-logging.getLogger('boto3').setLevel(logging.CRITICAL)
-logging.getLogger('botocore').setLevel(logging.CRITICAL)
-logging.getLogger('s3transfer').setLevel(logging.CRITICAL)
-
+    logging.getLogger('boto3').setLevel(logging.CRITICAL)
+    logging.getLogger('botocore').setLevel(logging.CRITICAL)
+    logging.getLogger('s3transfer').setLevel(logging.CRITICAL)
+except ImportError:
+    boto3 = None
+    ClientError = Exception
+    Config = None
+    import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -21,7 +26,7 @@ def upload_file_to_s3(file_path, bucket_name, s3_key):
     secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
     region = os.environ.get('AWS_REGION', 'eu-west-3')
 
-    if not access_key or not secret_key:
+    if not boto3 or not access_key or not secret_key:
         return False
 
     s3_client = boto3.client(
@@ -58,7 +63,7 @@ def get_s3_client():
     secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
     region = os.environ.get('AWS_REGION', 'eu-west-3')
 
-    if not access_key or not secret_key:
+    if not boto3 or not access_key or not secret_key:
         return None
 
     return boto3.client(

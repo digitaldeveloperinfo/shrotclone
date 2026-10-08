@@ -11,11 +11,10 @@ pkill -9 -f cloudflared || true
 # 2. System packages
 echo "Installing system packages..."
 apt-get update -qq && apt-get install -y -qq ffmpeg curl nodejs npm
-
 # 3. Python packages
 echo "Installing Python dependencies..."
 pip install -r requirements.txt
-pip install "mediapipe==0.10.14" "scenedetect>=0.6.4" py3langid faster-whisper ultralytics torch torchvision transnetv2-pytorch json-repair
+pip install boto3 "mediapipe==0.10.14" "scenedetect>=0.6.4" py3langid faster-whisper ultralytics torch torchvision transnetv2-pytorch json-repair
 
 # 4. Frontend dependencies
 echo "Installing Frontend dependencies..."
