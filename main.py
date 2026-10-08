@@ -9,6 +9,34 @@ import threading
 import unicodedata
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
+# Self-healing dependencies check for cloud/colab/container runs
+def _ensure_pipeline_dependencies():
+    packages_map = [
+        ("scenedetect", "scenedetect>=0.6.4"),
+        ("ultralytics", "ultralytics"),
+        ("torch", "torch torchvision"),
+        ("mediapipe", "mediapipe==0.10.14"),
+        ("faster_whisper", "faster-whisper"),
+        ("py3langid", "py3langid"),
+        ("transnetv2_pytorch", "transnetv2-pytorch"),
+        ("json_repair", "json-repair"),
+    ]
+    missing = []
+    for mod, pkg in packages_map:
+        try:
+            __import__(mod)
+        except ImportError:
+            missing.append(pkg)
+    if missing:
+        import subprocess, sys
+        print(f"📦 Auto-installing missing pipeline packages: {' '.join(missing)}...")
+        cmd = [sys.executable, "-m", "pip", "install", "-q"]
+        for p in missing:
+            cmd.extend(p.split())
+        subprocess.check_call(cmd)
+
+_ensure_pipeline_dependencies()
+
 from scenedetect import open_video, SceneManager
 from scenedetect.detectors import ContentDetector
 from ultralytics import YOLO
