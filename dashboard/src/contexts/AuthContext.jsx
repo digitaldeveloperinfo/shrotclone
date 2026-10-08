@@ -7,8 +7,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getApiUrl } from '../config';
 import { apiFetch, apiJson, getToken, setToken, clearToken } from '../lib/api';
-import { track, identify, reset as resetAnalytics } from '../lib/analytics';
-import { report as reportAttribution } from '../lib/attribution';
+import { track, identify, reset as resetAnalytics } from '../lib/events';
+import { report as reportAttribution } from '../lib/source';
 
 const AuthContext = createContext(null);
 // eslint-disable-next-line react-refresh/only-export-components

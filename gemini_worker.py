@@ -379,6 +379,8 @@ def _strip_code_fences(text: str) -> str:
 
 def _extract_json_candidate(text: str) -> str:
     cleaned = _strip_code_fences(text)
+    if "</think>" in cleaned:
+        cleaned = cleaned.split("</think>", 1)[-1].strip()
     start = cleaned.find("{")
     end = cleaned.rfind("}")
     if start != -1 and end != -1 and end > start:
@@ -417,6 +419,15 @@ def _parse_json_response_text(text: str) -> dict:
             return json.loads(parse_candidate)
         except json.JSONDecodeError as e:
             last_error = e
+
+    try:
+        import json_repair
+        repaired = json_repair.repair_json(candidate, return_objects=True)
+        if isinstance(repaired, dict):
+            return repaired
+    except Exception:
+        pass
+
     raise ValueError(f"Failed to parse Gemini JSON response: {last_error}")
 
 

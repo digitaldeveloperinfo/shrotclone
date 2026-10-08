@@ -1,5 +1,5 @@
 import { allows } from './consent';
-import { firstTouchProps } from './attribution';
+import { firstTouchProps } from './source';
 
 // Lightweight custom-event helper (OpenPanel).
 //

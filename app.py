@@ -71,6 +71,22 @@ QUALITY_GATE_MIN_HEIGHT = int(os.environ.get("QUALITY_GATE_MIN_HEIGHT", "720"))
 # failures were exactly this, one user retrying the same 24s video).
 MIN_SOURCE_SECONDS = int(os.environ.get("MIN_SOURCE_SECONDS", "45"))
 QUALITY_PROBE_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "quality_probe.py")
+def _child_python() -> str:
+    """Return the interpreter to spawn worker subprocesses (main.py, quality_probe.py) with.
+    Prefers the local virtual environment (.venv / venv) if present.
+    """
+    base = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(base, ".venv", "Scripts", "python.exe"),
+        os.path.join(base, ".venv", "bin", "python"),
+        os.path.join(base, "venv", "Scripts", "python.exe"),
+        os.path.join(base, "venv", "bin", "python"),
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            return c
+    return sys.executable
+
 
 # Server credentials the pipeline subprocesses (main.py, quality_probe.py) never
 # read: main.py and everything it imports use GEMINI_API_KEY / LLM_* / the
@@ -98,6 +114,14 @@ def child_env(base=None):
     env = dict(os.environ if base is None else base)
     for name in CHILD_ENV_DENYLIST:
         env.pop(name, None)
+    interp = _child_python()
+    venv_dir = os.path.dirname(os.path.dirname(interp))
+    if os.path.isdir(venv_dir) and os.path.isfile(os.path.join(venv_dir, "pyvenv.cfg")):
+        env["VIRTUAL_ENV"] = venv_dir
+        scripts_dir = os.path.dirname(interp)
+        current_path = env.get("PATH", "")
+        if scripts_dir not in current_path:
+            env["PATH"] = f"{scripts_dir}{os.pathsep}{current_path}"
     return env
 
 
@@ -2762,7 +2786,7 @@ async def _probe_youtube_quality(url: str) -> dict:
     def _run():
         try:
             proc = subprocess.run(
-                [sys.executable, QUALITY_PROBE_SCRIPT, "--url", url],
+                [_child_python(), QUALITY_PROBE_SCRIPT, "--url", url],
                 capture_output=True, timeout=75, env=child_env(),
             )
             return json.loads(proc.stdout.decode(errors="replace").strip() or "{}")
@@ -3157,7 +3181,7 @@ async def process_endpoint(
     # outside Docker is whatever interpreter happens to be first — not the venv
     # running this server. Every job then dies on `import cv2`. The quality
     # probe above already gets this right.
-    cmd = [sys.executable, "-u", "main.py"] # -u for unbuffered
+    cmd = [_child_python(), "-u", "main.py"] # -u for unbuffered
     env = child_env()
     if not paid_allowed:
         # Daily paid-proxy budget hit: this job runs on the free routes only.

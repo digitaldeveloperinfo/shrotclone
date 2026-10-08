@@ -2,15 +2,16 @@ import { StrictMode, useState, useEffect, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import Landing from './Landing.jsx'
+import App from './App.jsx'
+import { Loader2 } from 'lucide-react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-import { capture as captureAttribution } from './lib/attribution'
+import { capture as captureAttribution } from './lib/source'
 import PricingPage from './components/PricingPage'
 import AccountPage from './components/AccountPage'
 import LoginModal from './components/LoginModal'
 import { applyConsent } from './lib/consent'
 import CookieBanner from './components/CookieBanner'
 
-const App = lazy(() => import('./App.jsx'))
 const Legal = lazy(() => import('./Legal.jsx'))
 const OAuthConsent = lazy(() => import('./components/OAuthConsent'))
 
@@ -122,7 +123,12 @@ applyConsent();
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <Suspense fallback={<div className="min-h-screen bg-paper flex items-center justify-center text-muted text-sm lowercase">loading…</div>}>
+      <Suspense fallback={
+        <div className="min-h-screen bg-paper flex flex-col items-center justify-center gap-3 text-ink">
+          <Loader2 size={24} className="animate-spin text-brass" />
+          <span className="text-xs text-muted">loading openshorts…</span>
+        </div>
+      }>
         <Root />
       </Suspense>
       <CookieBanner />

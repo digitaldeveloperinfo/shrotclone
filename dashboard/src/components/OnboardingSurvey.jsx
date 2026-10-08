@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { apiJson } from '../lib/api';
-import { track } from '../lib/analytics';
+import { track } from '../lib/events';
 import Modal from './ui/Modal';
 
 // Mirror cloud/onboarding.SOURCES / GOALS / ROLES.

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link2, Upload, FileVideo, X, Info, Loader2, ChevronDown } from 'lucide-react';
-import { track } from '../lib/analytics';
+import { track } from '../lib/events';
 import { getApiUrl } from '../config';
 
 const SUPPORTED_PLATFORMS = [

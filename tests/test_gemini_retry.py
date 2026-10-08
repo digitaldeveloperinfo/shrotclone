@@ -144,3 +144,19 @@ def test_clean_response_is_not_flagged_as_blocked():
         candidates = []
 
     gemini_worker.raise_if_blocked(_Resp())  # must not raise
+
+def test_recovers_from_unescaped_quotes_via_json_repair():
+    import gemini_worker
+    # Unescaped quote inside string value that breaks standard json.loads
+    malformed = '{"windows": [{"id": "w1", "reason": "He said \\"wow\\" and smiled"}]}'
+    res = gemini_worker._parse_json_response_text(malformed)
+    assert res["windows"][0]["id"] == "w1"
+
+
+def test_recovers_from_trailing_commas_and_think_tags():
+    import gemini_worker
+    raw = '<think>evaluating</think>\\n```json\\n{"windows": [{"id": "w1", "score": 90},],}\\n```'
+    # Replace escape sequence to real newlines
+    raw = raw.replace('\\n', '\n')
+    res = gemini_worker._parse_json_response_text(raw)
+    assert res["windows"][0]["score"] == 90

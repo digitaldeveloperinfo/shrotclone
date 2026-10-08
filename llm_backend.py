@@ -113,13 +113,19 @@ def generate_json(prompt: str, schema: Type[BaseModel], model: Optional[str] = N
     url = f"{base_url()}/chat/completions"
     model = model or model_name()
     messages = [
-        {"role": "system", "content": "You answer with a single JSON object and nothing else."},
+        {"role": "system", "content": "You answer with a single valid JSON object and nothing else. Never use unescaped double quotes inside string values."},
         {"role": "user", "content": prompt},
     ]
     last_rejection: Optional[str] = None
     with _client() as client:
         for fmt in _response_formats(schema):
-            body = {"model": model, "messages": messages, "temperature": 0.2, "stream": False}
+            body = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.2,
+                "max_tokens": 4096,
+                "stream": False,
+            }
             if fmt is not None:
                 body["response_format"] = fmt
             resp = client.post(url, json=body, headers=_headers())
