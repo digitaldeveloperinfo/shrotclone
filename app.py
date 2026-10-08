@@ -2572,7 +2572,10 @@ def enqueue_output(out, job_id):
     """Reads output from a subprocess and appends it to jobs logs."""
     try:
         for line in iter(out.readline, b''):
-            decoded_line = _scrub_secrets(line.decode('utf-8').strip())
+            try:
+                decoded_line = _scrub_secrets(line.decode('utf-8', errors='replace').strip())
+            except Exception:
+                continue
             if decoded_line:
                 # Internal marker from main.py's downloader, not a log line.
                 # Internal marker: a clip finished its whole chain and this is
@@ -2697,6 +2700,10 @@ async def run_job(job_id, job_data):
                 pass
 
         returncode = process.returncode
+        try:
+            t_log.join(timeout=3)
+        except Exception:
+            pass
         
         if returncode == 0:
             jobs[job_id]['status'] = 'completed'
