@@ -122,6 +122,7 @@ def child_env(base=None):
         current_path = env.get("PATH", "")
         if scripts_dir not in current_path:
             env["PATH"] = f"{scripts_dir}{os.pathsep}{current_path}"
+    env["PYTHONPATH"] = os.pathsep.join(p for p in sys.path if p and os.path.exists(p))
     return env
 
 
