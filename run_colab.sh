@@ -3,20 +3,25 @@ set -e
 
 echo "=== OpenShorts Google Colab Setup ==="
 
-# 1. System packages
+# 1. Bersihkan proses lama
+pkill -9 -f uvicorn || true
+pkill -9 -f vite || true
+pkill -9 -f cloudflared || true
+
+# 2. System packages
 echo "Installing system packages..."
 apt-get update -qq && apt-get install -y -qq ffmpeg curl nodejs npm
 
-# 2. Python packages
+# 3. Python packages
 echo "Installing Python dependencies..."
 pip install -r requirements.txt
 pip install "mediapipe==0.10.14" "scenedetect>=0.6.4" py3langid faster-whisper ultralytics torch torchvision transnetv2-pytorch json-repair
 
-# 3. Frontend dependencies
+# 4. Frontend dependencies
 echo "Installing Frontend dependencies..."
 (cd dashboard && npm ci)
 
-# 4. Environment config
+# 5. Environment config
 if [ ! -f .env ]; then
   echo "Creating .env configuration..."
   cat << 'EOF' > .env
@@ -32,7 +37,7 @@ DEBUG_LOGS=true
 EOF
 fi
 
-# 5. Cloudflared tunnel
+# 6. Cloudflared tunnel
 if [ ! -f /usr/local/bin/cloudflared ]; then
   echo "Downloading cloudflared..."
   curl -sLo /usr/local/bin/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
@@ -40,10 +45,10 @@ if [ ! -f /usr/local/bin/cloudflared ]; then
 fi
 
 echo "Starting backend and frontend..."
-uvicorn app:app --host 0.0.0.0 --port 8000 &
-(cd dashboard && npm run dev -- --host 0.0.0.0 --port 5173) &
+uvicorn app:app --host 0.0.0.0 --port 8000 > /content/backend.log 2>&1 &
+(cd dashboard && npm run dev -- --host 0.0.0.0 --port 5173) > /content/frontend.log 2>&1 &
 
-sleep 5
+sleep 3
 
 echo "Starting Cloudflare tunnel..."
 cloudflared tunnel --url http://localhost:5173
