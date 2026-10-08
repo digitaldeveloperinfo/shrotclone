@@ -46,7 +46,6 @@ def upload_file_to_s3(file_path, bucket_name, s3_key):
         return False
 
 
-from botocore.config import Config
 import json
 import time as time_module
 
